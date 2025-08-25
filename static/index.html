@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitor</title>
+
+    <!-- HTMX library - this is all the JavaScript we need! -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- SSE extension for real-time updates -->
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        /* Additional styles for HTMX indicators */
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: inline-block;
+            animation: pulse 1s infinite;
+        }
+
+        /* SSE connection status */
+        #connection-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        #connection-status.disconnected {
+            background:rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Monitor</h1>
+
+        <!-- Connection status indicator -->
+        <div class="status-bar">
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span id="connection-status" class="disconnected">Connecting...</span>
+            </div>
+            <div>
+                <span id="timestamp">Waiting for data...</span> |
+                <span id="uptime">Uptime: --</span>
+            </div>
+        </div>
+
+        <!-- Main metrics grid with SSE connection -->
+        <div class="metrics-grid"
+             hx-ext="sse"
+             sse-connect="/metrics/stream">
+
+            <!-- CPU Metric Card -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">CPU Usage</span>
+                    <span class="metric-icon">⚡</span>
+                </div>
+                <div class="metric-value" id="cpu-value">--%</div>
+                <div class="progress-bar">
+                    <div id="cpu-bar" class="progress-fill" style="width: 0"></div>
+                </div>
+            </div>
+
+            <!-- Memory Metric Card -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Memory</span>
+                    <span class="metric-icon">💾</span>
+                </div>
+                <div class="metric-value" id="memory-value">-- GB</div>
+                <div class="progress-bar">
+                    <div id="memory-bar" class="progress-fill" style="width: 0"></div>
+                </div>
+            </div>
+
+            <!-- Network Metric Card -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Network</span>
+                    <span class="metric-icon">🌐</span>
+                </div>
+                <div id="network-value">-- MB</div>
+            </div>
+
+            <!-- Disk Metric Card -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Disk Usage</span>
+                    <span class="metric-icon">💿</span>
+                </div>
+                <div id="disk-list">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minimal JavaScript for SSE connection status -->
+    <script>
+        // Listen for SSE connection events
+        document.body.addEventListener('htmx:sseOpen', function(evt) {
+            document.getElementById('connection-status').textContent = 'Connected';
+            document.getElementById('connection-status').className = 'connected';
+            document.querySelector('.status-dot').style.background = '#4ade80';
+        });
+
+        document.body.addEventListener('htmx:sseError', function(evt) {
+            document.getElementById('connection-status').textContent = 'Reconnecting...';
+            document.getElementById('connection-status').className = 'disconnected';
+            document.querySelector('.status-dot').style.background = '#ef444';
+        });
+    </script>
+</body>
+</html>

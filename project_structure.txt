@@ -1,0 +1,42 @@
+// project_structure.txt
+
+system-monitor/                 # Project root directory
+├── Cargo.toml                 # Project manifest
+├── src/
+│   ├── main.rs                # Application entry point and server setup
+│   ├── lib.rs                 # Optional: if you want to make it a library too
+│   ├── models/
+│   │   ├── mod.rs             # Module declarations
+│   │   ├── cpu.rs             # CpuMetrics struct and implementations
+│   │   ├── memory.rs          # MemoryMetrics struct
+│   │   ├── disk.rs            # DiskMetrics struct
+│   │   ├── network.rs         # NetworkMetrics, NetworkInterface structs
+│   │   ├── process.rs         # ProcessMetrics, ProcessInfo structs
+│   │   └── system.rs          # SystemMetrics struct
+│   ├── collectors/
+│   │   ├── mod.rs             # Module declarations + MetricsCollector trait
+│   │   ├── cpu.rs             # CPU data collection logic
+│   │   ├── memory.rs          # Memory collection logic
+│   │   ├── disk.rs            # Disk collection logic
+│   │   ├── network.rs         # Network collection logic
+│   │   ├── process.rs         # Process collection logic
+│   │   └── system.rs          # Orchestrates all collectors
+│   ├── handlers/
+│   │   ├── mod.rs             # Module declarations
+│   │   ├── api.rs             # REST API handlers
+│   │   ├── websocket.rs       # WebSocket handler logic
+│   │   └── static_files.rs    # Static file serving (note: static_files.rs, not static.rs)
+│   ├── config/
+│   │   └── mod.rs             # Configuration settings
+│   └── utils/
+│       └── mod.rs             # Utility functions
+├── static/                    # Frontend files (outside src)
+│   ├── index.html             # Main HTML file
+│   ├── css/
+│   │   └── style.css          # All CSS styles
+│   └── js/
+│       ├── app.js             # Main JavaScript entry point
+│       ├── websocket.js       # WebSocket management
+│       ├── metrics.js         # Metrics update logic
+│       └── ui-helpers.js      # UI utility functions
+└── target/                    # Build output (auto-generated, not in git)
