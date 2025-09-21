@@ -1,4 +1,4 @@
-// ========== src/util/mod.rs ========== 
+// ========== src/utils/mod.rs ========== 
 
 #![allow(dead_code)]
 /// Format bytes into human-readable format

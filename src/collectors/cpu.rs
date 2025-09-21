@@ -1,37 +1,28 @@
-// src/collectors/cpu.rs
-
+// ========== src/collectors/cpu.rs ==========
 use sysinfo::System;
 use crate::models::cpu::CpuMetrics;
 
 pub fn collect_cpu_metrics(sys: &System) -> CpuMetrics {
-    // Get individual core usage - these are already averaged properly
+    // Use the built-in global CPU usage (properly averaged)
+    let global_usage = sys.global_cpu_usage();
+
+    // Get per-core usage
     let per_core_usage: Vec<f32> = sys.cpus()
         .iter()
         .map(|cpu| cpu.cpu_usage())
         .collect();
 
-    // Calculate average CPU usage across all cores manually
-    // This gives us more control over the calculation
-    let global_usage = if !per_core_usage.is_empty() {
-        per_core_usage.iter().sum::<f32>() / per_core_usage.len() as f32
+    let (frequency, brand) = if let Some(cpu) = sys.cpus().first() {
+        (cpu.frequency(), cpu.brand().to_string())
     } else {
-        0.0
+        (0, "Unknown".to_string())
     };
-
-    // Get core counts for information
-    let physical_cores = System::physical_core_count().unwrap_or(sys.cpus().len());
-    let logical_cores = sys.cpus().len();
-
-    // Debug output with more detail
-    println!("Debug CPU - Physical cores: {}, Logical cores: {}", physical_cores, logical_cores);
-    println!("Debug CPU - Calculated average: {:.1}%", global_usage);
-    println!("Debug CPU - Per core: {:?}", per_core_usage.iter().take(4).collect::<Vec<_>>());
 
     CpuMetrics {
         usage_percent: global_usage,
-        core_count: logical_cores,
-        frequency: sys.cpus().first().map(|cpu| cpu.frequency()).unwrap_or(0),
-        brand: System::cpu_arch(),
+        core_count: sys.cpus().len(),
+        frequency,
+        brand,
         per_core_usage,
     }
 }
@@ -39,20 +30,18 @@ pub fn collect_cpu_metrics(sys: &System) -> CpuMetrics {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sysinfo::CpuRefreshKind;
+    use std::thread;
+    use std::time::Duration;
 
     #[test]
     fn test_cpu_collection() {
-        let mut sys = System::new();
+        // Must use new_all() for tests too
+        let mut sys = System::new_all();
 
-        // Initial CPU refresh with specific refresh kind
-        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
-
-        // Wait for measurement interval
-        std::thread::sleep(std::time::Duration::from_millis(200));
-
-        // Second refresh for accurate measurement
-        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+        // Initial CPU refresh
+        sys.refresh_cpu_usage();
+        thread::sleep(Duration::from_millis(200));
+        sys.refresh_cpu_frequency();
 
         let metrics = collect_cpu_metrics(&sys);
 

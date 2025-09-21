@@ -1,4 +1,4 @@
-// src/collectors/mod.rs
+// ========== src/collectors/mod.rs ==========
 #![allow(dead_code)]
 use sysinfo::System;
 

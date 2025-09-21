@@ -1,5 +1,5 @@
-/* static/css/style.css */
-
+/* ========== static/css/style.css ========== */
+/* Reset and base styles */
 * {
     margin: 0;
     padding: 0;
@@ -26,6 +26,12 @@ h1 {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+h3 {
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+/* Status bar */
 .status-bar {
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
@@ -47,16 +53,36 @@ h1 {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #4ade80;
+    background: #ef4444;
     animation: pulse 2s infinite;
+    transition: background 0.3s;
 }
 
+/* Connection status states */
+#connection-status {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    transition: all 0.3s;
+}
+
+#connection-status.connected {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+#connection-status.disconnected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Pulse animation */
 @keyframes pulse {
-    0% { opacity: 1; }
+    0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-    100% { opacity: 1; }
 }
 
+/* Grid layout */
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -64,6 +90,7 @@ h1 {
     margin-bottom: 20px;
 }
 
+/* Metric cards */
 .metric-card {
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
@@ -105,6 +132,7 @@ h1 {
     margin: 5px 0;
 }
 
+/* Progress bars */
 .progress-bar {
     width: 100%;
     height: 10px;
@@ -121,8 +149,8 @@ h1 {
     transition: width 0.3s ease;
 }
 
+/* Process tables */
 .process-table {
-    width: 100%;
     margin-top: 10px;
 }
 
@@ -136,43 +164,9 @@ h1 {
     font-size: 0.9em;
 }
 
-.disk-item {
-    margin: 10px 0;
-    padding: 10px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
-}
-
-.network-interface {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px;
-    background: rgba(0,0,0,0.2);
-    margin: 5px 0;
-    border-radius: 5px;
-    font-size: 0.9em;
-}
-
-.error-message {
-    background: rgba(239, 68, 68, 0.2);
-    border: 1px solid #ef4444;
-    padding: 15px;
-    border-radius: 10px;
+/* Loading indicator */
+.loading {
     text-align: center;
-    margin: 20px 0;
-}
-
-.cpu-cores {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.core-usage {
-    text-align: center;
-    padding: 5px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 5px;
-    font-size: 0.85em;
+    opacity: 0.7;
+    font-style: italic;
 }

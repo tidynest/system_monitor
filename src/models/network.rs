@@ -1,4 +1,4 @@
-// src/models/network.rs
+// ========== src/models/network.rs ========== 
 
 use serde::{Deserialize, Serialize};
 

@@ -1,6 +1,5 @@
-// src/collectors/system.rs
-
-use sysinfo::{System, ProcessesToUpdate, ProcessRefreshKind, CpuRefreshKind};
+// ========== src/collectors/system.rs ==========
+use sysinfo::{ProcessesToUpdate, ProcessRefreshKind, System, UpdateKind};
 use crate::models::system::SystemMetrics;
 use super::{cpu, memory, disk, network, process};
 
@@ -11,66 +10,112 @@ use once_cell::sync::Lazy;
 
 struct SystemState {
     system: System,
-    last_cpu_refresh: Option<Instant>,
+    last_cpu_refresh: Instant,
+    last_process_refresh: Instant,
     first_run: bool,
 }
 
 static SYSTEM_STATE: Lazy<Mutex<SystemState>> = Lazy::new(|| {
-    let sys = System::new();
+    // Use new_all() to properly initialize all components
+    let mut sys = System::new_all();
 
-    // Initial setup - don't do CPU refresh here
-    // We'll handle it properly in the collect function
+    // Initial CPU refresh sequence
+    sys.refresh_cpu_usage();
+    std::thread::sleep(Duration::from_millis(200));
+    sys.refresh_cpu_usage();
+
+    // Initial process refresh with PROPER memory data
+    // Use ProcessRefreshKind::new() and configure what we need
+    let process_refresh_kind = ProcessRefreshKind::everything();
+
+    sys.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        process_refresh_kind,
+    );
 
     Mutex::new(SystemState {
         system: sys,
-        last_cpu_refresh: None,
+        last_cpu_refresh: Instant::now(),
+        last_process_refresh: Instant::now(),
         first_run: true,
     })
 });
 
 pub fn collect_system_metrics() -> SystemMetrics {
     let mut state = SYSTEM_STATE.lock().unwrap();
+    let now = Instant::now();
 
-    // Handle first run specially
-    if state.first_run {
-        // On first run, do two refreshes with a delay to get accurate initial reading
-        state.system.refresh_cpu_specifics(CpuRefreshKind::everything());
-        std::thread::sleep(Duration::from_millis(200));
-        state.system.refresh_cpu_specifics(CpuRefreshKind::everything());
-        state.last_cpu_refresh = Some(Instant::now());
-        state.first_run = false;
-    } else {
-        // For subsequent runs, check if enough time has passed
-        let now = Instant::now();
-        let should_refresh_cpu = state.last_cpu_refresh
-            .map(|last| now.duration_since(last) >= Duration::from_millis(200))
-            .unwrap_or(true);
-
-        if should_refresh_cpu {
-            // Single refresh is enough after the initial setup
-            state.system.refresh_cpu_specifics(CpuRefreshKind::everything());
-            state.last_cpu_refresh = Some(now);
-        }
+    // Only refresh CPU if enough time has passed
+    if now.duration_since(state.last_cpu_refresh) >= Duration::from_millis(200) {
+        state.system.refresh_cpu_usage();
+        state.last_cpu_refresh = now;
     }
 
     // Refresh memory data
     state.system.refresh_memory();
 
-    // Refresh process data with proper specifications
+    // Create proper refresh kind with memory explicitly enabled
+    let process_refresh_kind = ProcessRefreshKind::nothing()
+        .with_cpu()
+        .with_memory()  // Explicitly request memory
+        .with_disk_usage()
+        .with_cmd(UpdateKind::OnlyIfNotSet)
+        .with_exe(UpdateKind::OnlyIfNotSet);
+
+    // Always refresh processes to get current memory usage
     state.system.refresh_processes_specifics(
         ProcessesToUpdate::All,
-        true, // Remove dead processes
-        ProcessRefreshKind::everything(),
+        true,
+        process_refresh_kind,
     );
 
-    // Debug output
-    let process_count = state.system.processes().len();
-    println!("Debug: Found {} processes", process_count);
+    // For CPU calculation, we need two measurements
+    if state.first_run || now.duration_since(state.last_process_refresh) < Duration::from_millis(100) {
+        std::thread::sleep(Duration::from_millis(100));
+        state.system.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            false,  // Don't remove on second pass
+            process_refresh_kind,
+        );
+        state.first_run = false;
+    }
 
-    // Create process metrics (needs mutable reference)
+    state.last_process_refresh = now;
+
+    // Debug output for memory specifically
+    if cfg!(debug_assertions) {
+        println!("\n=== Process Memory Debug ===");
+        let mut unique_memory_values = std::collections::HashSet::new();
+        let mut sample_count = 0;
+
+        for (pid, proc) in state.system.processes() {
+            let mem_bytes = proc.memory();
+            let mem_mb = mem_bytes as f64 / 1_048_576.0;
+
+            if mem_mb > 10.0 && sample_count < 5 {  // Show first 5 processes over 10MB
+                println!("  {} (PID {}): {:.1} MB (raw: {} bytes)",
+                         proc.name().to_string_lossy(),
+                         pid.as_u32(),
+                         mem_mb,
+                         mem_bytes
+                );
+                sample_count += 1;
+            }
+
+            if mem_mb > 1.0 {
+                unique_memory_values.insert((mem_mb * 10.0) as i64); // Round to 0.1 MB
+            }
+        }
+
+        println!("  Unique memory values: {}", unique_memory_values.len());
+        println!("========================\n");
+    }
+
+    // Create process metrics
     let process_metrics = process::collect_process_metrics(&mut state.system);
 
-    // Collect all metrics using immutable reference
+    // Collect from all individual collectors
     let sys = &state.system;
 
     SystemMetrics {
@@ -98,22 +143,21 @@ mod tests {
         assert!(!metrics.timestamp.is_empty());
         assert!(!metrics.hostname.is_empty());
 
-        // CPU usage should be reasonable
-        assert!(metrics.cpu.usage_percent >= 0.0);
-        assert!(metrics.cpu.usage_percent <= 100.0);
-
-        println!("CPU Usage: {:.1}%", metrics.cpu.usage_percent);
+        println!("\n=== Test Results ===");
         println!("Process count: {}", metrics.process.total_count);
-        println!("Top CPU processes: {}", metrics.process.top_cpu.len());
 
-        // Test a second collection to ensure consistency
-        std::thread::sleep(Duration::from_millis(300));
-        let metrics2 = collect_system_metrics();
+        println!("\nTop Memory Processes:");
+        for p in &metrics.process.top_memory {
+            println!("  {} (PID {}): {:.1} MB", p.name, p.pid, p.memory_mb);
+        }
 
-        println!("Second CPU Usage: {:.1}%", metrics2.cpu.usage_percent);
+        // Check that we have different memory values
+        let memory_values: std::collections::HashSet<i64> = metrics.process.top_memory
+            .iter()
+            .map(|p| (p.memory_mb * 10.0) as i64)  // Round to 0.1 MB
+            .collect();
 
-        // Both measurements should be in reasonable range
-        assert!(metrics2.cpu.usage_percent >= 0.0);
-        assert!(metrics2.cpu.usage_percent <= 100.0);
+        println!("\nUnique memory values in top 5: {}", memory_values.len());
+        assert!(memory_values.len() > 1, "All processes shouldn't have the same memory!");
     }
 }

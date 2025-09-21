@@ -1,4 +1,4 @@
-// src/collectors/network.rs
+// ========== src/collectors/network.rs  ========== 
 
 use sysinfo::Networks;
 use crate::models::network::{NetworkMetrics, NetworkInterface};

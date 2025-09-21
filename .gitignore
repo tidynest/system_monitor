@@ -1,5 +1,64 @@
+# Rust build artifacts
 /target
 **/*.rs.bk
-Cargo.lock
 *.pdb
+
+# Cargo.lock is tracked for binary projects
+# Uncomment if this becomes a library
+# Cargo.lock
+
+# Environment variables
+.env
+.env.*
+
+# Editor files
+*.swp
+*.swo
+*~
 .DS_Store
+.vscode/
+.idea/
+*.iml
+
+# Test and debug scripts
+test_debug.sh
+test_*.sh
+debug_*.sh
+*.test
+
+# Debug HTML files
+/static/html/diagnostic.html
+
+# Log files
+*.log
+logs/
+*.pid
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Coverage reports
+*.profraw
+*.profdata
+coverage/
+tarpaulin-report.html
+
+# Performance profiling
+perf.data
+perf.data.old
+flamegraph.svg
+*.prof
+
+# Documentation build
+/target/doc/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
