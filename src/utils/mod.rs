@@ -6,6 +6,7 @@
 ///
 /// # Examples
 /// ```
+/// use system_monitor::utils::format_bytes;
 /// assert_eq!(format_bytes(1024), "1.00 KB");
 /// assert_eq!(format_bytes(1_048_576), "1.00 MB");
 /// ```
@@ -32,6 +33,7 @@ pub fn format_bytes(bytes: u64) -> String {
 ///
 /// # Examples
 /// ```
+/// use system_monitor::utils::format_uptime;
 /// assert_eq!(format_uptime(60), "1m");
 /// assert_eq!(format_uptime(3700), "1h 1m");
 /// assert_eq!(format_uptime(90000), "1d 1h 0m");

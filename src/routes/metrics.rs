@@ -8,6 +8,7 @@
 
 use actix_web::web::Bytes;
 use actix_web::{web, HttpResponse, Result};
+use actix_web::http::header::ContentEncoding;  // Add this import
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::time::interval;
@@ -33,8 +34,10 @@ pub async fn metrics_stream(
     let stream = async_stream::stream! {
         let mut interval = interval(Duration::from_secs(1));
 
-        // Send initial connection event
-        yield Ok::<_, actix_web::Error>(Bytes::from("event: connected\ndata: connected\n\n"));
+        // IMPORTANT: Skip the first tick to avoid immediate send
+        interval.tick().await;
+
+        log::info!("SSE client connected, starting metrics stream");
 
         loop {
             interval.tick().await;
@@ -44,20 +47,25 @@ pub async fn metrics_stream(
 
             // Create the SSE update with proper formatting
             match format_sse_update(&metrics) {
-                Ok(update) => yield Ok::<_, actix_web::Error>(Bytes::from(update)),
+                Ok(update) => {
+                    log::debug!("Sending SSE update: {} bytes", update.len());
+                    yield Ok::<_, actix_web::Error>(Bytes::from(update));
+                }
                 Err(e) => {
                     log::error!("Failed to format SSE update: {}", e);
-                    // Continue streaming even if one update fails
-                    continue;
+                    yield Ok::<_, actix_web::Error>(Bytes::from(": heartbeat\n\n"));
                 }
             }
         }
     };
 
     Ok(HttpResponse::Ok()
-        .content_type("text/event-stream")
-        .insert_header(("Cache-Control", "no-cache"))
-        .insert_header(("X-Accel-Buffering", "no")) // Disable Nginx buffering
+        .content_type("text/event-stream; charset=utf-8")
+        .insert_header(("Cache-Control", "no-cache, no-transform"))
+        .insert_header(("X-Accel-Buffering", "no"))
+        .insert_header(("Connection", "keep-alive"))
+        .insert_header(("Access-Control-Allow-Origin", "*"))
+        .insert_header(ContentEncoding::Identity)  // CRITICAL: Bypass compression middleware
         .streaming(Box::pin(stream)))
 }
 
@@ -206,6 +214,7 @@ fn render_network_stats(network: &crate::models::network::NetworkMetrics) -> Str
 }
 
 /// Format metrics as Server-Sent Event data
+/// CRITICAL: Each SSE message MUST end with two newlines (\n\n) to be valid
 fn format_sse_update(
     metrics: &crate::models::system::SystemMetrics,
 ) -> Result<String, serde_json::Error> {
@@ -224,7 +233,14 @@ fn format_sse_update(
         "uptime": utils::format_uptime(metrics.uptime),
     });
 
-    Ok(format!("data: {}\n\n", serde_json::to_string(&data)?))
+    // IMPORTANT: SSE format requires:
+    // 1. "data: " prefix
+    // 2. The actual data
+    // 3. Two newlines to terminate the message
+    let json_string = serde_json::to_string(&data)?;
+
+    // Explicitly format with double newline for proper SSE termination
+    Ok(format!("data: {}\n\n", json_string))
 }
 
 /// Basic HTML escape for user-provided content

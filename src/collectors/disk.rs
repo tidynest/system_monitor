@@ -49,7 +49,7 @@ mod tests {
             assert!(disk.usage_percent >= 0.0);
             assert!(disk.usage_percent <= 100.0);
             assert!(disk.total_gb > 0.0);
-            assert!(disk.mount_point.is_empty());
+            assert!(!disk.mount_point.is_empty());
         }
     }
 }

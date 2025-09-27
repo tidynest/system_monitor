@@ -315,91 +315,266 @@
 </div>
 
 <script>
-  // Initialize SSE connection for real-time metrics
-  const evtSource = new EventSource('/metrics/stream');
-  let reconnectTimer = null;
+  /**
+   * System Monitor SSE Handler
+   * This version uses a more robust approach to handle SSE messages
+   */
+  (function() {
+    'use strict';
 
-  // Connection established
-  evtSource.onopen = function() {
-    document.getElementById('status-text').textContent = 'Connected';
-    document.getElementById('connection-status').className = 'status-connected';
-    if (reconnectTimer) {
-      clearTimeout(reconnectTimer);
-      reconnectTimer = null;
+    console.log('[SSE] Initializing System Monitor...');
+
+    // Global state
+    let evtSource = null;
+    let messageCount = 0;
+    let lastUpdate = null;
+    let reconnectTimer = null;
+    let isConnected = false;
+
+    /**
+     * Update DOM elements with metric data
+     */
+    function updateDOM(data) {
+      try {
+        // CPU Updates
+        if (data.cpu_usage !== undefined) {
+          const el = document.getElementById('cpu-value');
+          if (el) el.textContent = data.cpu_usage;
+        }
+
+        if (data.cpu_percent !== undefined) {
+          const percent = Math.min(100, Math.max(0, parseFloat(data.cpu_percent) || 0));
+          const bar = document.getElementById('cpu-bar');
+          if (bar) bar.style.width = percent + '%';
+        }
+
+        if (data.cpu_cores !== undefined) {
+          const el = document.getElementById('cpu-cores');
+          if (el) el.textContent = data.cpu_cores;
+        }
+
+        if (data.cpu_freq !== undefined) {
+          const el = document.getElementById('cpu-freq');
+          if (el) el.textContent = Math.round(data.cpu_freq);
+        }
+
+        // Memory Updates
+        if (data.memory_used !== undefined && data.memory_total !== undefined) {
+          const el = document.getElementById('memory-value');
+          if (el) {
+            const used = parseFloat(data.memory_used).toFixed(1);
+            const total = parseFloat(data.memory_total).toFixed(1);
+            el.textContent = used + ' / ' + total + ' GB';
+          }
+        }
+
+        if (data.memory_percent !== undefined) {
+          const percent = Math.min(100, Math.max(0, parseFloat(data.memory_percent) || 0));
+          const bar = document.getElementById('memory-bar');
+          if (bar) bar.style.width = percent + '%';
+        }
+
+        if (data.memory_available !== undefined) {
+          const el = document.getElementById('memory-available');
+          if (el) el.textContent = parseFloat(data.memory_available).toFixed(1);
+        }
+
+        if (data.swap_used !== undefined && data.swap_total !== undefined) {
+          const el = document.getElementById('swap-usage');
+          if (el) {
+            const used = parseFloat(data.swap_used).toFixed(1);
+            const total = parseFloat(data.swap_total).toFixed(1);
+            el.textContent = used + '/' + total;
+          }
+        }
+
+        // System info
+        if (data.timestamp) {
+          const el = document.getElementById('timestamp');
+          if (el) el.textContent = data.timestamp;
+        }
+
+        if (data.uptime) {
+          const el = document.getElementById('uptime');
+          if (el) el.textContent = data.uptime;
+        }
+
+        console.log('[SSE] DOM updated successfully');
+      } catch (error) {
+        console.error('[SSE] Error updating DOM:', error);
+      }
     }
-  };
 
-  // Connection error - implement exponential backoff
-  evtSource.onerror = function(e) {
-    document.getElementById('status-text').textContent = 'Reconnecting...';
-    document.getElementById('connection-status').className = 'status-error';
+    /**
+     * Process incoming SSE message
+     */
+    function processMessage(dataStr) {
+      try {
+        // Skip empty messages
+        if (!dataStr || dataStr.trim() === '') return;
 
-    // Attempt reconnection with backoff
-    if (e.readyState === EventSource.CLOSED) {
-      reconnectTimer = setTimeout(() => {
-        window.location.reload();
-      }, 5000);
+        // Skip non-JSON messages like "connected"
+        if (!dataStr.startsWith('{')) {
+          console.log('[SSE] Non-JSON message:', dataStr);
+          return;
+        }
+
+        const data = JSON.parse(dataStr);
+        messageCount++;
+        lastUpdate = new Date();
+
+        console.log('[SSE] Message #' + messageCount + ' received');
+        updateDOM(data);
+
+      } catch (error) {
+        console.error('[SSE] Error processing message:', error, 'Data:', dataStr);
+      }
     }
-  };
 
-  // Process incoming SSE messages
-  evtSource.onmessage = function(e) {
-    try {
-      const data = JSON.parse(e.data);
+    /**
+     * Update connection status in UI
+     */
+    function updateStatus(connected) {
+      isConnected = connected;
+      const statusEl = document.getElementById('status-text');
+      const statusContainer = document.getElementById('connection-status');
 
-      // Update CPU metrics
-      if (data.cpu_usage !== undefined) {
-        document.getElementById('cpu-value').textContent = data.cpu_usage;
+      if (connected) {
+        if (statusEl) statusEl.textContent = 'Connected';
+        if (statusContainer) statusContainer.className = 'status-connected';
+      } else {
+        if (statusEl) statusEl.textContent = 'Disconnected';
+        if (statusContainer) statusContainer.className = 'status-error';
       }
-      if (data.cpu_percent !== undefined) {
-        const percent = Math.min(100, Math.max(0, data.cpu_percent));
-        document.getElementById('cpu-bar').style.width = percent + '%';
-      }
-      if (data.cpu_cores !== undefined) {
-        document.getElementById('cpu-cores').textContent = data.cpu_cores;
-      }
-      if (data.cpu_freq !== undefined) {
-        document.getElementById('cpu-freq').textContent = Math.round(data.cpu_freq);
-      }
-
-      // Update Memory metrics
-      if (data.memory_used !== undefined && data.memory_total !== undefined) {
-        const used = data.memory_used.toFixed(1);
-        const total = data.memory_total.toFixed(1);
-        document.getElementById('memory-value').textContent = `${used} / ${total} GB`;
-      }
-      if (data.memory_percent !== undefined) {
-        const percent = Math.min(100, Math.max(0, data.memory_percent));
-        document.getElementById('memory-bar').style.width = percent + '%';
-      }
-      if (data.memory_available !== undefined) {
-        document.getElementById('memory-available').textContent = data.memory_available.toFixed(1);
-      }
-      if (data.swap_used !== undefined && data.swap_total !== undefined) {
-        const swapUsed = data.swap_used.toFixed(1);
-        const swapTotal = data.swap_total.toFixed(1);
-        document.getElementById('swap-usage').textContent = `${swapUsed}/${swapTotal}`;
-      }
-
-      // Update system info
-      if (data.timestamp) {
-        document.getElementById('timestamp').textContent = data.timestamp;
-      }
-      if (data.uptime) {
-        document.getElementById('uptime').textContent = data.uptime;
-      }
-
-    } catch (err) {
-      console.error('Error parsing SSE data:', err);
     }
-  };
 
-  // Clean up on page unload
-  window.addEventListener('beforeunload', () => {
-    if (evtSource) {
-      evtSource.close();
+    /**
+     * Initialize SSE connection
+     */
+    function connect() {
+      // Clean up existing connection
+      if (evtSource) {
+        evtSource.close();
+        evtSource = null;
+      }
+
+      console.log('[SSE] Connecting to /metrics/stream...');
+
+      try {
+        evtSource = new EventSource('/metrics/stream');
+
+        // Connection opened
+        evtSource.onopen = function() {
+          console.log('[SSE] Connection established');
+          updateStatus(true);
+          if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+          }
+        };
+
+        // Main message handler - this is the critical part
+        evtSource.onmessage = function(event) {
+          console.log('[SSE] Message received:', event.data.substring(0, 50) + '...');
+          processMessage(event.data);
+        };
+
+        // Also listen for 'connected' events
+        evtSource.addEventListener('connected', function(event) {
+          console.log('[SSE] Connected event:', event.data);
+          if (event.data && event.data.startsWith('{')) {
+            processMessage(event.data);
+          }
+        });
+
+        // Error handler
+        evtSource.onerror = function(event) {
+          console.error('[SSE] Connection error', event);
+          updateStatus(false);
+
+          // Reconnect after delay
+          if (!reconnectTimer) {
+            reconnectTimer = setTimeout(function() {
+              console.log('[SSE] Attempting to reconnect...');
+              connect();
+            }, 3000);
+          }
+        };
+
+      } catch (error) {
+        console.error('[SSE] Failed to create EventSource:', error);
+        updateStatus(false);
+      }
     }
-  });
+
+    /**
+     * Debug utilities
+     */
+    window.sseDebug = {
+      status: function() {
+        return {
+          connected: isConnected,
+          evtSource: !!evtSource,
+          readyState: evtSource ? evtSource.readyState : null,
+          messagesReceived: messageCount,
+          lastUpdate: lastUpdate ? lastUpdate.toISOString() : 'Never'
+        };
+      },
+
+      test: function() {
+        const testData = {
+          cpu_usage: "45.2%",
+          cpu_percent: 45.2,
+          cpu_cores: 8,
+          cpu_freq: 3200,
+          memory_used: 8.5,
+          memory_total: 16.0,
+          memory_percent: 53.125,
+          memory_available: 7.5,
+          swap_used: 0.5,
+          swap_total: 4.0,
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          uptime: "2d 5h 30m"
+        };
+
+        console.log('[TEST] Updating DOM with test data...');
+        updateDOM(testData);
+        return 'Test data applied - check if values updated';
+      },
+
+      reconnect: function() {
+        console.log('[SSE] Manual reconnection...');
+        connect();
+      },
+
+      raw: function() {
+        if (evtSource) {
+          evtSource.onmessage = function(e) {
+            console.log('[RAW]', e);
+          };
+          return 'Raw mode enabled - watch console for raw events';
+        }
+        return 'No connection';
+      }
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', connect);
+    } else {
+      connect();
+    }
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+      if (evtSource) {
+        evtSource.close();
+      }
+    });
+
+    console.log('[SSE] System Monitor initialized. Debug with: sseDebug.status(), sseDebug.test(), sseDebug.reconnect()');
+
+  })();
 </script>
 </body>
 </html>

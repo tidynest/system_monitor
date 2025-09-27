@@ -20,14 +20,10 @@
 .idea/
 *.iml
 
-# Test and debug scripts
-test_debug.sh
+# Test and debug files
 test_*.sh
 debug_*.sh
 *.test
-
-# Debug HTML files
-/static/html/diagnostic.html
 
 # Log files
 *.log
@@ -41,6 +37,7 @@ Thumbs.db
 *.bak
 *.backup
 *.old
+README.md.backup
 
 # Coverage reports
 *.profraw
@@ -61,3 +58,17 @@ flamegraph.svg
 tmp/
 temp/
 *.tmp
+
+# GitHub specific
+.github/workflows/*.yml.disabled
+.github/ISSUE_TEMPLATE/*.backup
+
+# Development notes
+NOTES.md
+TODO.md
+
+# Binary releases (if you build releases locally)
+/releases/
+/dist/
+*.tar.gz
+*.zip
