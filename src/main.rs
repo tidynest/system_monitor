@@ -17,27 +17,33 @@ mod utils;
 /// Application entry point
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialise logging with production defaults
-    env_logger::Builder::from_env(
-        env_logger::Env::default().default_filter_or("warn,system_monitor=info")
-    ).init();
-
     // Load configuration from environment
     let cfg = config::Config::from_env();
+
+    // Initialise logging with configurations
+    env_logger::Builder::from_env(
+        env_logger::Env::default().default_filter_or(&cfg.log_filter())
+    ).init();
+
+    // Load bind address from environment
     let bind_addr = cfg.bind_address();
 
     // Create the metrics service
-    let metrics_service: services::MetricsServiceRef = Arc::new(services::RealMetricsService);
+    let metrics_service: services::MetricsServiceRef = Arc::new(
+        services::RealMetricsService);
 
     // Log startup information
     log::info!("System Monitor Dashboard starting");
     log::info!("Binding to: {}", bind_addr);
+    log::info!("Update interval: {:?}", cfg.update_interval);
+    log::info!("Max process shown: {}", cfg.max_processes_shown);
 
     HttpServer::new(move || {
         App::new()
             // Add logging middleware (production-appropriate)
             .wrap(
-                middleware::Logger::new("%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T")
+                middleware::Logger::new("%a \"%r\" %s %b \"%{Referer}i\" \
+                \"%{User-Agent}i\" %T")
                     .exclude("/metrics/stream")  // Don't log SSE connections
             )
             // Add compression middleware for better performance
