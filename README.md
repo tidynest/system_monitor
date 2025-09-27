@@ -64,56 +64,58 @@ cargo run --release
 ```
 .
 ├── Cargo.lock              # Dependency lock file (tracked for binaries)
-├── Cargo.toml              # Project manifest and dependencies
-├── src/
-│   ├── main.rs             # Application entry point
-│   ├── lib.rs              # Library root module
+├── Cargo.toml              # Project manifest and dependencies  
+├── LICENSE                 # MIT License file
+├── README.md               # This documentation file
+├── .gitignore              # Git ignore rules for build artifacts and temp files
+├── src/                    # Source code directory
+│   ├── main.rs             # Application entry point - HTTP server setup
+│   ├── lib.rs              # Library root - public API exports
 │   ├── collectors/         # System metric collection implementations
-│   │   ├── mod.rs          # Module declarations
-│   │   ├── cpu.rs          # CPU metrics collector
-│   │   ├── memory.rs       # Memory metrics collector
-│   │   ├── disk.rs         # Disk usage collector
-│   │   ├── network.rs      # Network statistics collector
-│   │   ├── process.rs      # Process information collector
-│   │   └── system.rs       # System-wide metrics orchestrator
-│   ├── models/             # Data structures for metrics
-│   │   ├── mod.rs          # Module declarations
-│   │   ├── cpu.rs          # CPU metrics model
-│   │   ├── memory.rs       # Memory metrics model
-│   │   ├── disk.rs         # Disk metrics model
-│   │   ├── network.rs      # Network metrics model
-│   │   ├── process.rs      # Process metrics model
-│   │   └── system.rs       # System metrics aggregate model
-│   ├── routes/             # HTTP endpoint handlers
-│   │   ├── mod.rs          # Route configuration
-│   │   ├── dashboard.rs    # Dashboard HTML serving
-│   │   └── metrics.rs      # API endpoints and SSE stream
-│   ├── services/           # Service layer abstractions
-│   │   ├── mod.rs          # Module declarations
-│   │   └── metrics_service.rs  # Metrics collection service trait
-│   ├── config/             # Configuration management
-│   │   └── mod.rs          # Environment variable configuration
-│   └── utils/              # Formatting and helper functions
-│       └── mod.rs          # Utility functions (uptime, bytes formatting)
-└── static/
-    └── html/
-        ├── dashboard.html  # Main dashboard interface
-        └── test.html       # SSE debugging interface (development only)
+│   │   ├── mod.rs          # Collector module exports
+│   │   ├── cpu.rs          # CPU usage and frequency collector
+│   │   ├── memory.rs       # RAM and swap memory collector
+│   │   ├── disk.rs         # Filesystem usage collector
+│   │   ├── network.rs      # Network interface statistics collector
+│   │   ├── process.rs      # Process list and top consumers collector
+│   │   └── system.rs       # Orchestrates all collectors with singleton state
+│   ├── models/             # Data structures for metrics (Serde serializable)
+│   │   ├── mod.rs          # Model exports and type aliases
+│   │   ├── cpu.rs          # CpuMetrics struct definition
+│   │   ├── memory.rs       # MemoryMetrics struct definition
+│   │   ├── disk.rs         # DiskMetrics struct definition
+│   │   ├── network.rs      # NetworkMetrics and NetworkInterface structs
+│   │   ├── process.rs      # ProcessMetrics and ProcessInfo structs
+│   │   └── system.rs       # SystemMetrics aggregate struct
+│   ├── routes/             # HTTP endpoint handlers and responses
+│   │   ├── mod.rs          # Route configuration and registration
+│   │   ├── dashboard.rs    # Serves dashboard.html static content
+│   │   └── metrics.rs      # SSE stream and HTMX partial endpoints
+│   ├── services/           # Service layer for dependency injection
+│   │   ├── mod.rs          # Service module exports
+│   │   └── metrics_service.rs  # MetricsService trait and implementations
+│   ├── config/             # Application configuration
+│   │   └── mod.rs          # Config struct and environment variable parsing
+│   └── utils/              # Utility functions and formatters
+│       └── mod.rs          # format_bytes() and format_uptime() helpers
+└── static/                 # Static web assets
+    └── html/               # HTML templates
+        └── dashboard.html  # Main dashboard interface with HTMX
 ```
 
 **Source Code Overview:**
 - [**main.rs**](src/main.rs): Entry point - sets up Actix-web server, middleware, and routes
 - [**collectors/**](src/collectors/): Platform-specific implementations using `sysinfo` crate
-    - [cpu.rs](src/collectors/cpu.rs): Global and per-core CPU usage tracking
-    - [memory.rs](src/collectors/memory.rs): RAM and swap utilization
-    - [disk.rs](src/collectors/disk.rs): Filesystem usage statistics
-    - [network.rs](src/collectors/network.rs): Interface traffic monitoring
-    - [process.rs](src/collectors/process.rs): Top resource consumers with deduplication
-    - [system.rs](src/collectors/system.rs): Singleton state management for efficiency
+  - [cpu.rs](src/collectors/cpu.rs): Global and per-core CPU usage tracking
+  - [memory.rs](src/collectors/memory.rs): RAM and swap utilization
+  - [disk.rs](src/collectors/disk.rs): Filesystem usage statistics
+  - [network.rs](src/collectors/network.rs): Interface traffic monitoring
+  - [process.rs](src/collectors/process.rs): Top resource consumers with deduplication
+  - [system.rs](src/collectors/system.rs): Singleton state management for efficiency
 - [**models/**](src/models/): Serde-serializable data structures for JSON API
 - [**routes/**](src/routes/): HTTP request handlers
-    - [metrics.rs](src/routes/metrics.rs): SSE stream with compression bypass fix
-    - [dashboard.rs](src/routes/dashboard.rs): Static HTML serving
+  - [metrics.rs](src/routes/metrics.rs): SSE stream with compression bypass fix
+  - [dashboard.rs](src/routes/dashboard.rs): Static HTML serving
 - [**services/**](src/services/): Abstraction layer enabling dependency injection
 - [**config/**](src/config/): Environment-based configuration with sensible defaults
 - [**utils/**](src/utils/): Human-readable formatting for bytes and uptime
@@ -235,4 +237,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Current Version**: v1.0.1 | **Minimum Rust Version**: 1.70 | **Platform Support**: Linux, macOS, Windows
+**Current Version**: v1.0.2 | **Minimum Rust Version**: 1.70 | **Platform Support**: Linux, macOS, Windows
