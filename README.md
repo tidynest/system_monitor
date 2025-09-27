@@ -202,7 +202,7 @@ Contributions are warmly welcomed! This project thrives on community input and c
 
 ## Roadmap
 
-The following enhancements are planned for future releases. See the [Issues](https://github.com/yourusername/system-monitor/issues) page for detailed discussions:
+The following enhancements are planned for future releases. See the [Issues](https://github.com/tidynest/system_monitor/issues) page for detailed discussions:
 
 ### Performance & Efficiency
 - **Configurable metric collection** (#1): Allow users to disable specific collectors for reduced overhead
