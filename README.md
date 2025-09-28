@@ -5,15 +5,15 @@ A high-performance, real-time system monitoring dashboard built with Rust and Ac
 ## Features
 
 ### Core Monitoring Capabilities
-- **CPU Metrics**: Real-time usage percentage, per-core utilization, frequency, and model information
+- **CPU Metrics**: Real-time usage percentage, per-core utilisation, frequency, and model information
 - **Memory Tracking**: RAM and swap usage with available/used breakdown
-- **Disk Analytics**: Usage statistics for all mounted filesystems with capacity visualization
+- **Disk Analytics**: Usage statistics for all mounted filesystems with capacity visualisation
 - **Network Statistics**: Interface-level traffic monitoring with aggregate bandwidth tracking
 - **Process Management**: Top consumers by CPU and memory with automatic deduplication
 
 ### Technical Highlights
 - **Real-time Updates**: Server-Sent Events deliver metrics every second without polling overhead
-- **Resource Efficient**: Singleton system state management minimizes collection overhead
+- **Resource Efficient**: Singleton system state management minimises collection overhead
 - **Production Ready**: Comprehensive error handling, logging, and configurable deployment options
 - **Zero JavaScript Dependencies**: Pure HTMX for dynamic content with minimal client footprint
 
@@ -79,7 +79,7 @@ cargo run --release
 │   │   ├── network.rs      # Network interface statistics collector
 │   │   ├── process.rs      # Process list and top consumers collector
 │   │   └── system.rs       # Orchestrates all collectors with singleton state
-│   ├── models/             # Data structures for metrics (Serde serializable)
+│   ├── models/             # Data structures for metrics (Serde serialisable)
 │   │   ├── mod.rs          # Model exports and type aliases
 │   │   ├── cpu.rs          # CpuMetrics struct definition
 │   │   ├── memory.rs       # MemoryMetrics struct definition
@@ -107,12 +107,12 @@ cargo run --release
 - [**main.rs**](src/main.rs): Entry point - sets up Actix-web server, middleware, and routes
 - [**collectors/**](src/collectors/): Platform-specific implementations using `sysinfo` crate
   - [cpu.rs](src/collectors/cpu.rs): Global and per-core CPU usage tracking
-  - [memory.rs](src/collectors/memory.rs): RAM and swap utilization
+  - [memory.rs](src/collectors/memory.rs): RAM and swap utilisation
   - [disk.rs](src/collectors/disk.rs): Filesystem usage statistics
   - [network.rs](src/collectors/network.rs): Interface traffic monitoring
   - [process.rs](src/collectors/process.rs): Top resource consumers with deduplication
   - [system.rs](src/collectors/system.rs): Singleton state management for efficiency
-- [**models/**](src/models/): Serde-serializable data structures for JSON API
+- [**models/**](src/models/): Serde-serialisable data structures for JSON API
 - [**routes/**](src/routes/): HTTP request handlers
   - [metrics.rs](src/routes/metrics.rs): SSE stream with compression bypass fix
   - [dashboard.rs](src/routes/dashboard.rs): Static HTML serving
@@ -131,7 +131,7 @@ cargo run --release
 - **Backend**: Rust, Actix-web 4.x
 - **System Info**: sysinfo crate for cross-platform metrics
 - **Frontend**: HTMX for dynamic updates, pure CSS for styling
-- **Serialization**: Serde with JSON for data exchange
+- **Serialisation**: Serde with JSON for data exchange
 
 ## API Endpoints
 
@@ -212,18 +212,18 @@ The following enhancements are planned for future releases. See the [Issues](htt
 ### Features
 - **Alert system** (#4): Configurable thresholds with email/webhook notifications
 - **Docker monitoring** (#5): Container-specific metrics and resource usage
-- **GPU metrics** (#6): NVIDIA/AMD GPU utilization and temperature monitoring
+- **GPU metrics** (#6): NVIDIA/AMD GPU utilisation and temperature monitoring
 - **Custom dashboards** (#7): User-configurable layouts and metric selections
 
 ### Platform Support
 - **Windows service integration** (#8): Native Windows service installation
 - **macOS launchd support** (#9): Automatic startup on macOS
-- **ARM optimization** (#10): Raspberry Pi and ARM server optimizations
+- **ARM optimisation** (#10): Raspberry Pi and ARM server optimisations
 
 ### UI/UX Improvements
 - **Dark/light theme toggle** (#11): User preference persistence
 - **Export capabilities** (#12): CSV/JSON export for metric data
-- **Mobile responsive design** (#13): Optimized layouts for mobile devices
+- **Mobile responsive design** (#13): Optimised layouts for mobile devices
 
 ## License
 
