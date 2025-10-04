@@ -63,44 +63,44 @@ cargo run --release
 ### Project Structure
 ```
 .
-├── Cargo.lock              # Dependency lock file (tracked for binaries)
-├── Cargo.toml              # Project manifest and dependencies  
-├── LICENSE                 # MIT License file
-├── README.md               # This documentation file
-├── .gitignore              # Git ignore rules for build artifacts and temp files
-├── src/                    # Source code directory
-│   ├── main.rs             # Application entry point - HTTP server setup
-│   ├── lib.rs              # Library root - public API exports
-│   ├── collectors/         # System metric collection implementations
-│   │   ├── mod.rs          # Collector module exports
-│   │   ├── cpu.rs          # CPU usage and frequency collector
-│   │   ├── memory.rs       # RAM and swap memory collector
-│   │   ├── disk.rs         # Filesystem usage collector
-│   │   ├── network.rs      # Network interface statistics collector
-│   │   ├── process.rs      # Process list and top consumers collector
-│   │   └── system.rs       # Orchestrates all collectors with singleton state
-│   ├── models/             # Data structures for metrics (Serde serialisable)
-│   │   ├── mod.rs          # Model exports and type aliases
-│   │   ├── cpu.rs          # CpuMetrics struct definition
-│   │   ├── memory.rs       # MemoryMetrics struct definition
-│   │   ├── disk.rs         # DiskMetrics struct definition
-│   │   ├── network.rs      # NetworkMetrics and NetworkInterface structs
-│   │   ├── process.rs      # ProcessMetrics and ProcessInfo structs
-│   │   └── system.rs       # SystemMetrics aggregate struct
-│   ├── routes/             # HTTP endpoint handlers and responses
-│   │   ├── mod.rs          # Route configuration and registration
-│   │   ├── dashboard.rs    # Serves dashboard.html static content
-│   │   └── metrics.rs      # SSE stream and HTMX partial endpoints
-│   ├── services/           # Service layer for dependency injection
-│   │   ├── mod.rs          # Service module exports
+├── Cargo.lock                  # Dependency lock file (tracked for binaries)
+├── Cargo.toml                  # Project manifest and dependencies  
+├── LICENSE                     # MIT License file
+├── README.md                   # This documentation file
+├── .gitignore                  # Git ignore rules for build artifacts and temp files
+├── src/                        # Source code directory
+│   ├── main.rs                 # Application entry point - HTTP server setup
+│   ├── lib.rs                  # Library root - public API exports
+│   ├── collectors/             # System metric collection implementations
+│   │   ├── mod.rs              # Collector module exports
+│   │   ├── cpu.rs              # CPU usage and frequency collector
+│   │   ├── memory.rs           # RAM and swap memory collector
+│   │   ├── disk.rs             # Filesystem usage collector
+│   │   ├── network.rs          # Network interface statistics collector
+│   │   ├── process.rs          # Process list and top consumers collector
+│   │   └── system.rs           # Orchestrates all collectors with singleton state
+│   ├── models/                 # Data structures for metrics (Serde serialisable)
+│   │   ├── mod.rs              # Model exports and type aliases
+│   │   ├── cpu.rs              # CpuMetrics struct definition
+│   │   ├── memory.rs           # MemoryMetrics struct definition
+│   │   ├── disk.rs             # DiskMetrics struct definition
+│   │   ├── network.rs          # NetworkMetrics and NetworkInterface structs
+│   │   ├── process.rs          # ProcessMetrics and ProcessInfo structs
+│   │   └── system.rs           # SystemMetrics aggregate struct
+│   ├── routes/                 # HTTP endpoint handlers and responses
+│   │   ├── mod.rs              # Route configuration and registration
+│   │   ├── dashboard.rs        # Serves dashboard.html static content
+│   │   └── metrics.rs          # SSE stream and HTMX partial endpoints
+│   ├── services/               # Service layer for dependency injection
+│   │   ├── mod.rs              # Service module exports
 │   │   └── metrics_service.rs  # MetricsService trait and implementations
-│   ├── config/             # Application configuration
-│   │   └── mod.rs          # Config struct and environment variable parsing
-│   └── utils/              # Utility functions and formatters
-│       └── mod.rs          # format_bytes() and format_uptime() helpers
-└── static/                 # Static web assets
-    └── html/               # HTML templates
-        └── dashboard.html  # Main dashboard interface with HTMX
+│   ├── config/                 # Application configuration
+│   │   └── mod.rs              # Config struct and environment variable parsing
+│   └── utils/                  # Utility functions and formatters
+│       └── mod.rs              # format_bytes() and format_uptime() helpers
+└── static/                     # Static web assets
+    └── html/                   # HTML templates
+        └── dashboard.html      # Main dashboard interface with HTMX
 ```
 
 **Source Code Overview:**
