@@ -26,7 +26,7 @@ A high-performance, real-time system monitoring dashboard built with Rust and Ac
 ### Build from Source
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/system-monitor.git
+git clone https://github.com/tidynest/system-monitor.git
 cd system-monitor
 
 # Build in release mode for optimal performance
