@@ -66,11 +66,9 @@ pub fn collect_system_metrics() -> SystemMetrics {
         .with_exe(UpdateKind::OnlyIfNotSet);
 
     // Refresh process data
-    state.system.refresh_processes_specifics(
-        ProcessesToUpdate::All,
-        true,
-        process_refresh_kind,
-    );
+    state
+        .system
+        .refresh_processes_specifics(ProcessesToUpdate::All, true, process_refresh_kind);
 
     // Ensure proper CPU calculation interval on first run
     if state.first_run
@@ -109,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_system_metrics_collection() {
-        // Allow system to 
+        // Allow system to
         std::thread::sleep(Duration::from_millis(500));
 
         let metrics = collect_system_metrics();

@@ -58,6 +58,9 @@ mod tests {
         };
 
         assert_eq!(metrics.total_gb - metrics.available_gb, metrics.used_gb);
-        assert_eq!(metrics.usage_percent, metrics.used_gb / metrics.total_gb * 100.0);
+        assert_eq!(
+            metrics.usage_percent,
+            metrics.used_gb / metrics.total_gb * 100.0
+        );
     }
 }

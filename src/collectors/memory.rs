@@ -35,10 +35,8 @@ mod tests {
         let metrics = collect_memory_metrics(&sys);
 
         assert!(metrics.total_gb > 0.0);
-        assert!(
-            metrics.usage_percent >= 0.0 &&
-            metrics.usage_percent <= 100.0);
+        assert!(metrics.usage_percent >= 0.0 && metrics.usage_percent <= 100.0);
         assert!(metrics.available_gb > 0.0);
-        assert!(metrics.used_gb + metrics.available_gb <= metrics.total_gb * 1.1);  // Allow 10% tolerance
+        assert!(metrics.used_gb + metrics.available_gb <= metrics.total_gb * 1.1); // Allow 10% tolerance
     }
 }

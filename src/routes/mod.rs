@@ -22,6 +22,6 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             .route("/metrics/stream", web::get().to(metrics::metrics_stream))
             .route("/metrics/processes", web::get().to(metrics::get_processes))
             .route("/metrics/disks", web::get().to(metrics::get_disks))
-            .route("/metrics/network", web::get().to(metrics::get_network))
+            .route("/metrics/network", web::get().to(metrics::get_network)),
     );
 }
