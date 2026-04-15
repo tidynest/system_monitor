@@ -106,9 +106,7 @@ mod tests {
     fn test_process_collection() {
         let mut sys = System::new_all();
 
-        let refresh_kind = ProcessRefreshKind::nothing()
-            .with_memory()
-            .with_cpu();
+        let refresh_kind = ProcessRefreshKind::nothing().with_memory().with_cpu();
 
         sys.refresh_processes_specifics(ProcessesToUpdate::All, true, refresh_kind);
 
@@ -119,7 +117,10 @@ mod tests {
         let metrics = collect_process_metrics(&mut sys);
 
         assert!(metrics.total_count > 0, "Should have at least one process");
-        assert!(!metrics.top_memory.is_empty(), "Should have memory processes");
+        assert!(
+            !metrics.top_memory.is_empty(),
+            "Should have memory processes"
+        );
 
         // Verify unique memory values
         if metrics.top_memory.len() > 1 {

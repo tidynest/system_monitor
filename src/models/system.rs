@@ -37,7 +37,7 @@ mod tests {
             cpu: CpuMetrics {
                 usage_percent: 25.5,
                 core_count: 8,
-                frequency: 2400,  // Changed from 2400.0 to 2400 (u64)
+                frequency: 2400, // Changed from 2400.0 to 2400 (u64)
                 brand: "Test CPU".to_string(),
                 per_core_usage: vec![25.0, 30.0, 20.0, 35.0],
             },

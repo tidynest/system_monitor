@@ -2,7 +2,7 @@
 //!
 //! Collects network interface statistics including transmitted and received data.
 
-use crate::models::network::{NetworkMetrics, NetworkInterface};
+use crate::models::network::{NetworkInterface, NetworkMetrics};
 use sysinfo::Networks;
 
 /// Collect metrics for all network interfaces
@@ -23,15 +23,15 @@ pub fn collect_network_metrics() -> NetworkMetrics {
         total_tx += tx;
 
         interfaces.push(NetworkInterface {
-            name:               interface_name.to_string(),
-            received_mb:        rx as f64 / 1_048_576.0,
-            transmitted_mb:     tx as f64 / 1_048_576.0,
+            name: interface_name.to_string(),
+            received_mb: rx as f64 / 1_048_576.0,
+            transmitted_mb: tx as f64 / 1_048_576.0,
         });
     }
 
     NetworkMetrics {
-        total_received_mb:      total_rx as f64 / 1_048_576.0,
-        total_transmitted_mb:   total_tx as f64 / 1_048_576.0,
+        total_received_mb: total_rx as f64 / 1_048_576.0,
+        total_transmitted_mb: total_tx as f64 / 1_048_576.0,
         interfaces,
     }
 }

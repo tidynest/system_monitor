@@ -124,9 +124,13 @@ mod tests {
 
     #[test]
     fn test_env_override() {
-        std::env::set_var("MONITOR_PORT", "9000");
+        unsafe {
+            std::env::set_var("MONITOR_PORT", "9000");
+        }
         let config = Config::from_env();
         assert_eq!(config.port, 9000);
-        std::env::remove_var("MONITOR_PORT");
+        unsafe {
+            std::env::remove_var("MONITOR_PORT");
+        }
     }
 }

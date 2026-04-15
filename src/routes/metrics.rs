@@ -6,9 +6,9 @@
 //! - Disk usage endpoints
 //! - Network statistics endpoints
 
+use actix_web::http::header::ContentEncoding; // Add this import
 use actix_web::web::Bytes;
-use actix_web::{web, HttpResponse, Result};
-use actix_web::http::header::ContentEncoding;  // Add this import
+use actix_web::{HttpResponse, Result, web};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::time::interval;
@@ -28,9 +28,7 @@ pub struct ProcessQuery {
 ///
 /// Establishes a Server-Sent Events connection that pushes system metrics
 /// to the client every second.
-pub async fn metrics_stream(
-    metrics_service: web::Data<MetricsServiceRef>,
-) -> Result<HttpResponse> {
+pub async fn metrics_stream(metrics_service: web::Data<MetricsServiceRef>) -> Result<HttpResponse> {
     let stream = async_stream::stream! {
         let mut interval = interval(Duration::from_secs(1));
 
@@ -65,7 +63,7 @@ pub async fn metrics_stream(
         .insert_header(("X-Accel-Buffering", "no"))
         .insert_header(("Connection", "keep-alive"))
         .insert_header(("Access-Control-Allow-Origin", "*"))
-        .insert_header(ContentEncoding::Identity)  // CRITICAL: Bypass compression middleware
+        .insert_header(ContentEncoding::Identity) // CRITICAL: Bypass compression middleware
         .streaming(Box::pin(stream)))
 }
 
