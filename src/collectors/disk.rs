@@ -8,22 +8,21 @@ use sysinfo::Disks;
 /// Collect metrics for all mounted disks
 ///
 /// Returns a vector containing usage statistics for each mounted filesystem
-/// including total space, available space, and usage percentage.
+/// including total space, available space, and usage percentage. Mounts that
+/// report no capacity (FUSE and portal mounts such as `/run/user/1000/doc`)
+/// are skipped, since they hold no data of their own.
 pub fn collect_disk_metrics() -> Vec<DiskMetrics> {
     let disks = Disks::new_with_refreshed_list();
 
     disks
         .list()
         .iter()
+        .filter(|disk| disk.total_space() > 0)
         .map(|disk| {
             let total = disk.total_space() as f64;
             let available = disk.available_space() as f64;
             let used = total - available;
-            let usage_percent = if total > 0.0 {
-                (used / total) * 100.0
-            } else {
-                0.0
-            };
+            let usage_percent = (used / total) * 100.0;
 
             DiskMetrics {
                 name: disk.name().to_string_lossy().to_string(),
