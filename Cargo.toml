@@ -12,8 +12,9 @@ async-stream = "0.3.6"
 # Date and time
 chrono = "0.4.44"
 
-# Web framework
-actix-web = "4.13.0"
+# Web framework. Defaults minus `http2`: the server binds plain HTTP/1.1, and
+# leaving it out keeps h2 (RUSTSEC-2026-0258, no 0.3 fix) out of the build.
+actix-web = { version = "4.13.0", default-features = false, features = ["macros", "compress-brotli", "compress-gzip", "compress-zstd", "cookies", "unicode", "compat", "ws"] }
 actix-files = "0.6.10"
 
 # Serialisation
